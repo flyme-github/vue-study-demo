@@ -19,79 +19,97 @@
     </div>
 </template>
 <script>
-export default {
-    data() {
-        return {
-            dragover: false,
-            files: [],
-            fileName: ''
-        };
-    },
-    methods: {
-        onDrop(e) {
-            console.log(e);
-            e.stopPropagation();
-            const imgBox = document.getElementById('imgBox');
-            imgBox.innerHTML = '加载中...';
-            imgBox.style.width = '200px';
-            this.dragover = false;
-            this.files = e.dataTransfer.files;
-            this.fileName = this.files[0].name;
-            const img = document.createElement('img');
-            img.style.width = '100%';
-            const reader = new FileReader();
-            reader.onload = function (ev) {
-                console.log(ev);
-                img.src = this.result;
-                imgBox.appendChild(img);
-            }
-            reader.onprogress = function (ev) {
-                console.log(ev);
-                const percentComplete = Math.round(ev.loaded * 100 / ev.total);
-                if (ev.loaded === ev.total) {
-                    imgBox.innerHTML = '';
+    export default {
+        data() {
+            return {
+                dragover: false,
+                files: [],
+                fileName: ''
+            };
+        },
+        methods: {
+            onDrop(e) {
+                console.log(e);
+                e.stopPropagation();
+                const imgBox = document.getElementById('imgBox');
+                imgBox.innerHTML = '加载中...';
+                imgBox.style.width = '200px';
+                this.dragover = false;
+                this.files = e.dataTransfer.files;
+                this.fileName = this.files[0].name;
+                const img = document.createElement('img');
+                img.style.width = '100%';
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    console.log(ev);
+                    img.src = this.result;
+                    imgBox.appendChild(img);
                 }
-                console.log(percentComplete);
+                reader.onprogress = function (ev) {
+                    console.log(ev);
+                    const percentComplete = Math.round(ev.loaded * 100 / ev.total);
+                    if (ev.loaded === ev.total) {
+                        imgBox.innerHTML = '';
+                    }
+                    console.log(percentComplete);
+                }
+                reader.readAsDataURL(this.files[0]);
+            },
+            onDragover() {
+                this.dragover = true;
+                this.fileName = '';
+                // console.log('onDragover');
+            },
+            onDropEnter() {
+                // console.log('onDropEnter');
+            },
+            onDropLeave() {
+                this.dragover = false;
+                console.log('onDropLeave');
+                document.getElementById('imgBox').innerHTML = '';
+            },
+            changeSize(direction = 1) {
+                const imgBox = document.getElementById('imgBox');
+                if (imgBox) {
+                    const imgBoxWidth = imgBox.getBoundingClientRect().width;
+                    imgBox.style.width = (1 + direction * 0.1) * imgBoxWidth + 'px';
+                }
+            },
+            enlarge() {
+                this.changeSize();
+            },
+            delarge() {
+                this.changeSize(-1);
             }
-            reader.readAsDataURL(this.files[0]);
         },
-        onDragover() {
-            this.dragover = true;
-            this.fileName = '';
-            // console.log('onDragover');
-        },
-        onDropEnter() {
-            // console.log('onDropEnter');
-        },
-        onDropLeave() {
-            this.dragover = false;
-            console.log('onDropLeave');
-            document.getElementById('imgBox').innerHTML = '';
-        },
-        changeSize(direction = 1) {
-            const imgBox = document.getElementById('imgBox');
-            if (imgBox) {
-                const imgBoxWidth = imgBox.getBoundingClientRect().width;
-                imgBox.style.width = (1 + direction * 0.1) * imgBoxWidth + 'px';
-            }
-        },
-        enlarge() {
-            this.changeSize();
-        },
-        delarge() {
-            this.changeSize(-1);
-        }
-    },
-    beforeRouteLeave(to, from, next) {
-        if (window.confirm('您确定要离开吗？')) {
-            next();
-            
-        } else {
-            next(false);
-        }
-    }
+        beforeRouteLeave(to, from, next) {
 
-}
+            // 浏览器后退 有问题
+            this.$confirm('确认离开吗?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning',
+                callback: action => {
+                    if (action === 'confirm') {
+                        next();
+                    } else {
+                        next(false);
+                        this.$message({
+                            type: 'info',
+                            message: '离开失败'
+                        });
+                    }
+                }
+            });
+            // 浏览器后退 以下是ok的
+            // if (window.confirm('您确定要离开吗？')) {
+            //     next();
+            // } else {
+            //     next(false);
+            // }
+        }
+
+    }
 
 </script>
 <style scoped lang="less">
@@ -120,6 +138,7 @@ export default {
 
         &:hover {
             border-color: #409eff;
+
             .upload-inner {
                 color: #409eff;
             }
@@ -128,6 +147,7 @@ export default {
         &.is-dragover {
             background-color: rgba(32, 159, 255, .06);
             border: 2px dashed #409eff;
+
             .upload-inner {
                 color: #409eff;
             }
@@ -144,4 +164,5 @@ export default {
         align-items: center;
         justify-content: center;
     }
+
 </style>
