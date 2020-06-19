@@ -85,6 +85,7 @@ export default {
     beforeRouteLeave(to, from, next) {
         if (window.confirm('您确定要离开吗？')) {
             next();
+            
         } else {
             next(false);
         }
